@@ -1,8 +1,39 @@
 # README
 
 ## Doc
-Wails: https://wails.io/zh-Hans/docs/gettingstarted/firstproject/
-Element Plus: https://element-plus.org/zh-CN/guide/installation.html
+- Wails: https://wails.io/zh-Hans/docs/gettingstarted/firstproject/
+- Element Plus: https://element-plus.org/zh-CN/guide/installation.html
+- Vue Router: https://router.vuejs.org/zh/
+- Vuex: https://next.vuex.vuejs.org/zh/
+- Axios: https://axios-http.com/docs/intro
+- Vite: https://cn.vitejs.dev/
+- TypeScript: https://www.typescriptlang.org/zh/
+- Go: https://golang.org/doc/
+- GoDoc: https://pkg.go.dev/
+- GoFrame: https://goframe.org/
+- GoFrame Doc: https://goframe.org/pages/viewpage.action?pageId=1114397
+- Tailwind CSS: https://tailwindcss.com/docs
+- Naive UI: https://www.naiveui.com/zh-CN/light/components/tree
+
+## xicons
+
+> https://github.com/07akioni/xicons#installation
+
+> https://xicons.org/#/
+
+```
+# Icons Installation For vue3
+npm i -D @vicons/fluent
+npm i -D @vicons/ionicons4
+npm i -D @vicons/ionicons5
+npm i -D @vicons/antd
+npm i -D @vicons/material
+npm i -D @vicons/fa # font awesome
+npm i -D @vicons/tabler
+npm i -D @vicons/carbon
+# Icon Utils Installation For vue3
+npm i -D @vicons/utils
+```
 
 ## About
 

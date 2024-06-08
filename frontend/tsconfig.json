@@ -4,12 +4,44 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Node",
-    "strict": true,
+    // 类型检查 false
+    "strict": false,
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+    "baseUrl": "./",
+    "paths": {
+      // 设置对应的别名
+      "@/src/components/*": [
+        "./src/components/*"
+      ],
+      "@/src/assets/*": [
+        "./src/assets/*"
+      ],
+      "@/src/views/*": [
+        "./src/views/*"
+      ],
+      "@/src/layouts/*": [
+        "./src/layouts/*"
+      ],
+      "@/src/types/*": [
+        "./src/types/*"
+      ],
+      "@/src/stores": [
+        "./src/stores"
+      ],
+      "@/src/plugins": [
+        "./src/plugins"
+      ],
+      "@/src/router": [
+        "./src/router"
+      ],
+      "@/wailsjs/*": [
+        "./wailsjs/*"
+      ]
+    },
     "lib": [
       "ESNext",
       "DOM"
@@ -20,7 +52,8 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "src/types/global.d.ts"
   ],
   "references": [
     {

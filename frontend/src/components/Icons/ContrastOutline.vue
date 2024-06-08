@@ -1,0 +1,26 @@
+<script lang="ts" setup>
+const props = defineProps({
+  size: {
+    type: [Number, String],
+    default: 14,
+  },
+  strokeWidth: {
+    type: [Number, String],
+    default: 4,
+  },
+})
+</script>
+
+<template>
+  <svg :height="props.size" :width="props.size" fill="none" viewBox="0 0 512 512">
+    <path
+        d="M256 32A224 224 0 0 0 97.61 414.39A224 224 0 1 0 414.39 97.61A222.53 222.53 0 0 0 256 32zM64 256c0-105.87 86.13-192 192-192v384c-105.87 0-192-86.13-192-192z"
+        fill="currentColor"
+        :stroke-width="props.strokeWidth"
+    ></path>
+  </svg>
+</template>
+
+<style lang="scss" scoped>
+
+</style>

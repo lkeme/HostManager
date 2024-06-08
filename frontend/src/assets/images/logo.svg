@@ -1,0 +1,44 @@
+<svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 外发光效果 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+        <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    </filter>
+
+    <!-- 粒子特效 -->
+    <g id="particles">
+        <!-- 创建粒子 -->
+        <circle cx="200" cy="100" r="2" fill="#ffc0cb">
+            <animate attributeName="cx" dur="5s" values="200;210;190;200" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="5s" values="100;110;90;100" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="200" cy="100" r="2" fill="#ffc0cb">
+            <animate attributeName="cx" dur="5s" values="200;190;210;200" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="5s" values="100;90;110;100" repeatCount="indefinite"/>
+        </circle>
+        <!-- 添加更多的粒子 -->
+        <circle cx="180" cy="90" r="3" fill="#ffc0cb">
+            <animate attributeName="cx" dur="6s" values="180;190;170;180" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="6s" values="90;100;80;90" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="220" cy="110" r="4" fill="#ffc0cb">
+            <animate attributeName="cx" dur="4s" values="220;230;210;220" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="4s" values="110;120;100;110" repeatCount="indefinite"/>
+        </circle>
+        <!-- 更改粒子颜色和大小 -->
+        <circle cx="250" cy="80" r="2" fill="#ffc0cb">
+            <animate attributeName="cx" dur="5s" values="250;260;240;250" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="5s" values="80;90;70;80" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="150" cy="120" r="3" fill="#ffc0cb">
+            <animate attributeName="cx" dur="5s" values="150;160;140;150" repeatCount="indefinite"/>
+            <animate attributeName="cy" dur="5s" values="120;130;110;120" repeatCount="indefinite"/>
+        </circle>
+    </g>
+
+    <!-- HM 文字 -->
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="100" fill="#e3e387" filter="url(#glow)">H M</text>
+</svg>
