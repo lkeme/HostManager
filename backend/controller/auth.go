@@ -55,7 +55,7 @@ func (a *Auth) Register(password, confirmPassword string) Res {
 		Encrypted bool   `json:"encrypted"`
 	}
 
-	// TODO 处理密码
+	//
 	if password != confirmPassword {
 		return a.success(RegisterResponse{Status: false, Message: "注册失败, 两次密码不一致"})
 	}
@@ -104,12 +104,6 @@ func (a *Auth) Login(password string) Res {
 	return a.success(LoginResponse{Status: true, Message: "登录成功", Encrypted: encrypted})
 }
 
-// ModifyPassword 修改密码
-func (a *Auth) ModifyPassword(old_password, new_password, confirm_password string) Res {
-	return Res{}
-
-}
-
 // IsEncrypted 判断是否加密
 func (a *Auth) IsEncrypted() Res {
 	type IsEncryptedResponse struct {
@@ -136,4 +130,23 @@ func (a *Auth) Logout() Res {
 		return a.success(LogoutResponse{Status: false, Message: fmt.Sprintf("退出登录失败, %v", err)})
 	}
 	return a.success(LogoutResponse{Status: true, Message: "退出登录成功"})
+}
+
+// ChangePassword 修改密码
+func (a *Auth) ChangePassword(oldPassword, newPassword, confirmPassword string) Res {
+	type ChangePasswordResponse struct {
+		Status  bool   `json:"status"`
+		Message string `json:"message"`
+	}
+
+	//
+	if newPassword != confirmPassword {
+		return a.success(ChangePasswordResponse{Status: false, Message: "修改密码失败, 两次密码不一致"})
+	}
+	//
+	err := db.ChangePassword(a.dbPath, oldPassword, newPassword)
+	if err != nil {
+		return a.success(ChangePasswordResponse{Status: false, Message: "修改密码失败, " + err.Error()})
+	}
+	return a.success(ChangePasswordResponse{Status: true, Message: "修改密码成功"})
 }

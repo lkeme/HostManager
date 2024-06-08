@@ -1,3 +1,5 @@
+// Type definitions for responses from auth API
+
 export interface IsRegisterResponse extends BaseResponse<{
     is_register: boolean;
 }> {
@@ -30,6 +32,12 @@ export interface LoginResponse extends BaseResponse<{
 }
 
 export interface LogoutResponse extends BaseResponse<{
+    status: boolean;
+    message: string;
+}> {
+}
+
+export interface ChangePasswordResponse extends BaseResponse<{
     status: boolean;
     message: string;
 }> {

@@ -12,7 +12,8 @@
         <div class="view-auth-register-form" v-if="!isRegister">
           <n-form ref="registerFormRef" label-placement="left" size="large" :model="registerFormInline" :rules="rules">
             <n-form-item path="password">
-              <n-input v-model:value="registerFormInline.password" placeholder="请输入密码">
+              <n-input v-model:value="registerFormInline.password" type="password" showPasswordOn="click"
+                       placeholder="请输入密码">
                 <template #prefix>
                   <n-icon size="18" color="#808695">
                     <LockClosedOutline/>
@@ -22,7 +23,7 @@
             </n-form-item>
             <n-form-item path="confirm_password">
               <n-input v-model:value="registerFormInline.confirm_password" type="password" showPasswordOn="click"
-                       placeholder="请确认密码">
+                       placeholder="请再次输入密码">
                 <template #prefix>
                   <n-icon size="18" color="#808695">
                     <LockClosedOutline/>
@@ -149,7 +150,7 @@ const handleLoginSubmit = (e: MouseEvent) => {
         if (data.status) {
           saveLoginInfo();
           const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
-          $message.success('登录成功，即将进入系统');
+          $message.success('登录成功');
           //
           if (route.name === '/login') {
             await router.replace('/');
@@ -209,7 +210,7 @@ const rules = {
         if (value === registerFormInline.password) {
           callback();
         } else {
-          callback(new Error('两次输入密码不一致'));
+          callback(new Error('两次输入密码不匹配'));
         }
       }, trigger: 'blur'
     },

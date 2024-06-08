@@ -10,59 +10,45 @@ import WindowRestore from "@/src/components/Icons/WindowRestore.vue";
 import MoonOutline from "@/src/components/Icons/MoonOutline.vue";
 import SunnyOutline from "@/src/components/Icons/SunnyOutline.vue";
 import ContrastOutline from "@/src/components/Icons/ContrastOutline.vue";
-import {Home, LockClosed, LockOpen, LogOutOutline as LogoutIcon, Pencil as EditIcon} from '@vicons/ionicons5'
+import {
+  Home,
+  LockClosed,
+  LockClosedOutline,
+  LockOpen,
+  LogOutOutline as LogoutIcon,
+  Pencil as EditIcon
+} from '@vicons/ionicons5'
 import {NIcon} from 'naive-ui'
 import {useThemeStore} from "@/src/stores";
 import {storeToRefs} from "pinia";
-import {IsEncrypted, IsLogin, Logout} from "@/wailsjs/go/controller/Auth";
-import {IsEncryptedResponse, IsLoginResponse, LogoutResponse} from "@/src/types/response/auth";
+import {ChangePassword, IsEncrypted, IsLogin, Logout} from "@/wailsjs/go/controller/Auth";
+import {ChangePasswordResponse, IsEncryptedResponse, IsLoginResponse, LogoutResponse} from "@/src/types/response/auth";
 import {GetAppSettingAttrResponse} from "@/src/types/response/config";
 import {useRouter} from "vue-router";
-import {type FormSchema, ModalForm, type Recordable} from 'naive-ui-form'
-
-// -----------change password modal start-----------
-const showChangePasswordModal = ref(false)
-const changePasswordSchemas: FormSchema[] = [
-  {
-    field: 'old_password',
-    label: '老密码',
-    type: 'input',
-    required: true
-  },
-  {
-    field: 'password',
-    label: '新密码',
-    type: 'input',
-    required: true
-  },
-  {
-    field: 'confirm_password',
-    label: '确认密码',
-    type: 'input',
-    required: true,
-  }
-]
-
-const changePasswordLoading = ref(false)
-
-function handleSubmit(values: Recordable) {
-  console.log(values)
-  changePasswordLoading.value = true
-  setTimeout(() => {
-    changePasswordLoading.value = false
-    showChangePasswordModal.value = false
-  }, 2000)
-}
-
-// -----------change password modal end-----------
+import {type FormSchema, ModalForm, type ModalFormInstance, type Recordable} from 'naive-ui-form'
 
 
+// -----------common start-----------
 const router = useRouter()
 const windowRestore = ref(false)
-
 const themeStore = useThemeStore()
 const {modeState} = storeToRefs(themeStore)
 
+const modeStateText = computed(() => {
+  switch (modeState.value) {
+    case 'light':
+      return '日间模式'
+    case 'dark':
+      return '夜间模式'
+    case 'auto':
+      return '跟随系统'
+  }
+})
+
+const appName = ref<string>('')
+const appIcon = ref<string>('')
+const isEncrypted = ref<boolean>(false)
+const isLogin = ref<boolean>(false)
 
 const renderIcon = (icon: Component, color: string = '') => {
   return () => {
@@ -73,12 +59,77 @@ const renderIcon = (icon: Component, color: string = '') => {
     })
   }
 }
+// -----------common end-----------
 
-const appName = ref<string>('')
-const appIcon = ref<string>('')
-const isEncrypted = ref<boolean>(false)
-const isLogin = ref<boolean>(false)
+// -----------change password modal start-----------
+const changePasswordModalRef = ref<ModalFormInstance | null>(null)
+const showChangePasswordModal = ref(false)
+const changePasswordLoading = ref(false)
 
+const rules = {
+  password: [
+    {required: true, message: '请输入密码', trigger: 'blur'},
+    {min: 8, max: 16, message: '密码长度应为8-16', trigger: 'blur'},
+    {pattern: /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/, message: '密码必须包含数字和字母', trigger: 'blur'},
+  ],
+  confirm_password: [
+    {required: true, message: '请确认密码', trigger: 'blur'},
+    {
+      validator(_, value) {
+        return value === changePasswordModalRef.value?.getFieldValue('new_password');
+      },
+      message: "两次输入密码不匹配",
+      trigger: "blur",
+    }
+  ],
+};
+
+const changePasswordSchemas: FormSchema[] = [
+  {
+    field: 'old_password',
+    type: 'slot',
+    rules: rules.password,
+    slot: 'old_password',
+    // label: '老密码',
+    // componentProps: {
+    //   type: 'password',
+    //   showPasswordOn: 'click'
+    // },
+  },
+  {
+    field: 'new_password',
+    type: 'slot',
+    slot: 'new_password',
+    rules: rules.password,
+  },
+  {
+    field: 'confirm_password',
+    type: 'slot',
+    slot: 'confirm_password',
+    rules: rules.confirm_password,
+  }
+]
+
+const handleChangePasswordSubmit = async (values: Recordable) => {
+  console.log(values)
+  changePasswordLoading.value = true
+  //
+  const response: ChangePasswordResponse = await ChangePassword(values.old_password, values.new_password, values.confirm_password)
+  const {data} = response
+  if (data.status) {
+    $message.success('修改密码成功, 请重新登录')
+    setTimeout(async () => {
+      changePasswordLoading.value = false
+      showChangePasswordModal.value = false
+      await router.push('/login')
+    }, 2000)
+  } else {
+    $message.error(`修改密码失败: ${data.message}`)
+  }
+}
+// -----------change password modal end-----------
+
+// -----------dropdown start-----------
 const moreOptions = ref([
   {
     label: '回到首页',
@@ -144,7 +195,6 @@ const moreOptions = ref([
   }
 ])
 
-
 const handleSelect = async (key: string | number) => {
   // $message.info(String(key))
   switch (key) {
@@ -174,7 +224,6 @@ const handleSelect = async (key: string | number) => {
   }
 }
 
-// 回到首页
 const handleHome = async () => {
   await router.push('/')
 }
@@ -207,18 +256,6 @@ const handleClose = async () => {
   Quit()
 }
 
-const modeStateText = computed(() => {
-  switch (modeState.value) {
-    case 'light':
-      return '日间模式'
-    case 'dark':
-      return '夜间模式'
-    case 'auto':
-      return '跟随系统'
-  }
-})
-
-
 onMounted(async () => {
   await GetAppSettingAttr('appName').then((response: GetAppSettingAttrResponse) => {
     appName.value = response.data.value;
@@ -236,8 +273,6 @@ onMounted(async () => {
     isLogin.value = response.data.is_login;
   });
 });
-
-
 </script>
 
 <template>
@@ -308,12 +343,49 @@ onMounted(async () => {
     <n-divider/>
   </div>
   <ModalForm
-      v-model:show="showChangePasswordModal"
-      :schemas="changePasswordSchemas"
       title="修改密码"
+      v-model:show="showChangePasswordModal"
+      ref="changePasswordModalRef"
+      :schemas="changePasswordSchemas"
       :loading="changePasswordLoading"
-      @submit="handleSubmit"
-  />
+      @submit="handleChangePasswordSubmit"
+      :show-icon="false"
+      :closable="false"
+      :negative-button-props="{ focusable: false, size: 'medium' }"
+      :positive-button-props="{ focusable: false, size: 'medium',type:'error'}"
+  >
+
+    <template #old_password="{ formValue, field }">
+      <n-input v-model:value="formValue[field]" type="password" showPasswordOn="click" placeholder="请输入老密码">
+        <template #prefix>
+          <n-icon size="18" color="#808695">
+            <LockClosedOutline/>
+          </n-icon>
+        </template>
+      </n-input>
+    </template>
+
+    <template #new_password="{ formValue, field }">
+      <n-input v-model:value="formValue[field]" type="password" showPasswordOn="click" placeholder="请输入新密码">
+        <template #prefix>
+          <n-icon size="18" color="#808695">
+            <LockClosedOutline/>
+          </n-icon>
+        </template>
+      </n-input>
+    </template>
+
+    <template #confirm_password="{ formValue, field }">
+      <n-input v-model:value="formValue[field]" type="password" showPasswordOn="click" placeholder="请再次输入密码">
+        <template #prefix>
+          <n-icon size="18" color="#808695">
+            <LockClosedOutline/>
+          </n-icon>
+        </template>
+      </n-input>
+    </template>
+
+  </ModalForm>
 </template>
 
 <style lang="scss" scoped>

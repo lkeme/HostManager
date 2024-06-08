@@ -87,6 +87,16 @@ func Connect(dbPath, key string) (err error) {
 	return
 }
 
+// ChangePassword 修改密码
+func ChangePassword(dbName, oldKey, newKey string) (err error) {
+	err = wxSQLite3.ResetDBKey(dbName, oldKey, newKey)
+	if err != nil {
+		log.Println("Database password change failed: ", err.Error())
+	}
+	_ = Close()
+	return
+}
+
 func Migrate() (err error) {
 	err = globalDB.AutoMigrate(
 		&model.Folder{},
@@ -116,7 +126,6 @@ func IsEncrypted(dbPath string) (encrypted bool, err error) {
 		log.Println("Database encryption check failed: ", err)
 	}
 	return
-	//Close()
 }
 
 func getDBConfig() *gorm.Config {

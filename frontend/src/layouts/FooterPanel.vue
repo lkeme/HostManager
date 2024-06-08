@@ -107,10 +107,17 @@ onMounted(() => {
     <n-divider/>
     <div class="flex flex-grow items-center justify-between mx-2 bottom-0 z-50">
       <p>拥有<span class="font-bold">23</span>个主机</p>
-<!--        Vue 3 + Vite + Pinia + Naive UI + TypeScript-->
-      <n-gradient-text gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)">
-        {{ nowTime }}
-      </n-gradient-text>
+      <!--隐藏/显示-->
+      <div class="group">
+      <div class="group-hover:hidden">
+        Happy Ending
+      </div>
+      <div class="hidden group-hover:flex">
+        <n-gradient-text gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)">
+          {{ nowTime }}
+        </n-gradient-text>
+      </div>
+      </div>
       <div class="flex gap-x-2.5 ">
         <!--      absolute right-2 bottom-2-->
         <n-tooltip :delay="1000" :show-arrow="false">
