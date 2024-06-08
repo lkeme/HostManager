@@ -72,6 +72,10 @@ func Connect(dbPath, key string) (err error) {
 	//
 	if err != nil {
 		log.Println("Database connection failed: ", err.Error())
+		// 处理密码错误
+		if err.Error() == "file is not a database" {
+			err = errors.New("密码错误")
+		}
 	} else {
 		sqlDB, _ := db.DB()
 		sqlDB.SetMaxIdleConns(10)               // 最大空闲连接数

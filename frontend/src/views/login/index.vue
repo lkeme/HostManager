@@ -94,35 +94,49 @@ const registerFormInline = reactive({
 });
 
 const handleRegisterSubmit = (e: MouseEvent) => {
+  const next = async () => {
+    $message.loading('尝试注册中...');
+    loading.value = true;
+
+    try {
+      const response: RegisterResponse = await Register(registerFormInline.password, registerFormInline.confirm_password);
+      const {data} = response;
+      $message.destroyAll();
+      //
+      if (data.status) {
+        const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
+        $message.success('注册成功，即将进入系统');
+        //
+        if (route.name === '/login') {
+          await router.replace('/');
+        } else {
+          await router.replace(toPath)
+        }
+      } else {
+        $message.error(data.message || '注册失败');
+      }
+    } finally {
+      loading.value = false;
+    }
+  };
+
   e.preventDefault();
   registerFormRef.value?.validate(async (errors) => {
-    if (!errors) {
-      $message.loading('尝试注册中...');
-      loading.value = true;
-
-      try {
-        const response: RegisterResponse = await Register(registerFormInline.password, registerFormInline.confirm_password);
-        const {data} = response;
-        $message.destroyAll();
-        //
-        if (data.status) {
-          const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
-          $message.success('注册成功，即将进入系统');
-          //
-          if (route.name === '/login') {
-            await router.replace('/');
-          } else {
-            await router.replace(toPath)
-          }
-        } else {
-          $message.error(data.message || '注册失败');
-        }
-      } finally {
-        loading.value = false;
-      }
-    } else {
+    if (errors) {
       $message.error('注册信息填写有误，请检查后重新填写');
+      return;
     }
+    //
+    $dialog.warning({
+      title: '注册提示',
+      content: '注册密码非常重要，如果密码丢失，数据不可找回，请牢记您的密码',
+      negativeText: '再想想',
+      positiveText: '继续注册？',
+      onPositiveClick: next,
+      onNegativeClick: () => {
+        return;
+      }
+    });
   });
 };
 
@@ -138,34 +152,34 @@ const loginFormInline = reactive({
 const handleLoginSubmit = (e: MouseEvent) => {
   e.preventDefault();
   loginFormRef.value?.validate(async (errors) => {
-    if (!errors) {
-      $message.loading('尝试登录中...');
-      loading.value = true;
-
-      try {
-        const response: LoginResponse = await Login(loginFormInline.password);
-        const {data} = response;
-        $message.destroyAll();
-        //
-        if (data.status) {
-          saveLoginInfo();
-          const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
-          $message.success('登录成功');
-          //
-          if (route.name === '/login') {
-            await router.replace('/');
-          } else {
-            await router.replace(toPath)
-          }
-        } else {
-          $message.error(data.message || '登录失败');
-        }
-
-      } finally {
-        loading.value = false;
-      }
-    } else {
+    if (errors) {
       $message.error('登录信息填写有误，请检查后重新填写');
+      return;
+    }
+    //
+    $message.loading('尝试登录中...');
+    loading.value = true;
+
+    try {
+      const response: LoginResponse = await Login(loginFormInline.password);
+      const {data} = response;
+      $message.destroyAll();
+      //
+      if (data.status) {
+        saveLoginInfo();
+        const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
+        $message.success('登录成功');
+        //
+        if (route.name === '/login') {
+          await router.replace('/');
+        } else {
+          await router.replace(toPath)
+        }
+      } else {
+        $message.error(data.message || '登录失败');
+      }
+    } finally {
+      loading.value = false;
     }
   });
 };
@@ -206,7 +220,7 @@ const rules = {
   confirm_password: [
     {required: true, message: '请确认密码', trigger: 'blur'},
     {
-      validator: (rule, value, callback) => {
+      validator: (_, value, callback) => {
         if (value === registerFormInline.password) {
           callback();
         } else {
