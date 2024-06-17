@@ -4,10 +4,17 @@ import {repeat} from 'seemly'
 import {TreeOption} from 'naive-ui'
 import {v4 as uuidv4} from 'uuid'
 
+export interface NewTreeOption extends TreeOption {
+    id: number,
+    level: number,
+    parentID: number,
+}
+
 const createKey = (): string => {
     // 550e8400-e29b-41d4-a716-446655440000
     // 取e29b-41d4-a716
-    return uuidv4().slice(9, 23)}
+    return uuidv4().slice(9, 23)
+}
 
 const createLabel = (level: number): string => {
     if (level === 4) return 'Level 4'
@@ -16,7 +23,6 @@ const createLabel = (level: number): string => {
     if (level === 1) return 'Level 1'
     return ''
 }
-
 
 // 创建虚拟初始数据
 export const createData = (level = 3, baseKey = ''): TreeOption[] => {

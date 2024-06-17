@@ -1,4 +1,11 @@
 package global
 
+import (
+	"HostManager/backend/db"
+	"gorm.io/gorm"
+)
+
 // DB 数据库实例
-var DB = db.GetDatabase()
+func DB() *gorm.DB {
+	return db.GetGlobalDB()
+}

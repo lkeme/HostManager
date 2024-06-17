@@ -105,7 +105,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col h-full w-full">
     <n-divider/>
-    <div class="flex flex-grow items-center justify-between mx-2 bottom-0 z-50">
+    <div class="flex flex-1 items-center justify-between mx-2 bottom-0 z-50">
       <p>拥有<span class="font-bold">23</span>个主机</p>
       <!--隐藏/显示-->
       <div class="group">

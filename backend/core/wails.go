@@ -1,8 +1,8 @@
 package core
 
 import (
+	c "HostManager/backend/config"
 	"HostManager/backend/controller"
-	c "HostManager/backend/internal/config"
 	"HostManager/backend/util"
 	"context"
 	"embed"
@@ -21,6 +21,7 @@ func InitWails(assets embed.FS, port int, icon []byte, wIcon []byte) {
 	config := controller.NewConfig()
 	config.SetAppIcon(icon)
 	auth := controller.NewAuth()
+	fs := controller.NewFileSystem()
 
 	// 创建控制器实例
 	//config := NewConfig()
@@ -48,6 +49,7 @@ func InitWails(assets embed.FS, port int, icon []byte, wIcon []byte) {
 			system.SetCtx(ctx)
 			config.SetCtx(ctx)
 			auth.SetCtx(ctx)
+			fs.SetCtx(ctx)
 			//server.setCtx(ctx)
 			//audio.setCtx(ctx)
 			//photo.setCtx(ctx)
@@ -63,6 +65,7 @@ func InitWails(assets embed.FS, port int, icon []byte, wIcon []byte) {
 			system,
 			config,
 			auth,
+			fs,
 			//server,
 			//wallpaper,
 			//audio,

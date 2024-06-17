@@ -1,40 +1,118 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 type File struct {
-	gorm.Model
-	Filename string `gorm:"type:char(255); NOT NULL" json:"filename"`    // 文件名称
-	Hash     string `gorm:"type:varchar(32);INDEX;NOT NULL" json:"hash"` // 文件Hash
-	Format   string `gorm:"type:varchar(255);NOT NULL" json:"format"`    // 文件MimeType 例如: video/mp4 -> .mp4
-	Extra    string `gorm:"NOT NULL;type:TEXT" json:"extra"`             // extra
-	Size     int64  `gorm:"type:BIGINT" json:"size"`                     // 文件大小
+	ID       uint64 `gorm:"primaryKey" json:"fileID"`
+	Name     string `gorm:"non null" json:"name"`
+	Path     string `gorm:"non null" json:"path"`
+	ParentID uint64 `gorm:"non null" json:"parentID"`
+	Owner    int64  `gorm:"non null" json:"owner"`
+
+	Header string `gorm:"non null" json:"header"`
+	KeyEnc string `gorm:"non null" json:"key"`
+	Nonce  string `gorm:"non null" json:"nonce"`
+
+	FileID string `gorm:"not null" json:"-"`
 }
 
-type FileStore interface {
-	// 保存文件到指定目录
-	SaveFileToFolder(file *File, folderId int64) (err error)
-	// 删除文件和目录之间的关联 返回允许删除的文件 Hash 列表
-	DeleteFile(ids []int64, folderId int64) (allowDelFileHashList []string, err error)
-	// 移动文件
-	MoveFile(fromId, toId int64, fileIds []int64) (err error)
-	// 复制文件
-	CopyFile(fromId, toId int64, fileIds []int64) (totalSize uint64, err error)
-	// 重命名文件
-	RenameFile(folderId, fileId int64, newName string) (err error)
-	// 加载文件
-	LoadFile(folderId, fileId, userId int64) (file *File, err error)
-	//GetHashByFileIds()
-}
-
-type FileService interface {
-	FileStore
-}
-
-const TableNameServer = "server"
-
-func (*File) TableName() string {
-	return TableNameServer
-}
+//
+//func (f *File) GetParent() (*Folder, error) { return GetFolderByID(f.ParentID, f.Owner) }
+//
+//// Create a file and all the folders needed
+//func CreateFile(file *File) error {
+//	// Sanitize the path
+//	err := sanitizePath(&file.Path)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// Split the path in the directories names
+//	dirs := strings.Split(file.Path, "/")
+//	// The last one is the file name
+//	file.Name = dirs[len(dirs)-1]
+//
+//	// Create the parent folder path with the other ones
+//	parent := &Folder{
+//		Path:  strings.Join(dirs[:len(dirs)-1], "/"),
+//		Owner: file.Owner,
+//	}
+//
+//	// Create the parent if it doesn't exist
+//	// Skip if the folder is root
+//	if parent.Path != "" {
+//		err = CreateFolder(parent)
+//		if err != nil {
+//			return err
+//		}
+//	} else {
+//		parent, err = GetRootOf(file.Owner)
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	// Set the parent id to the id of the parent folder
+//	file.ParentID = parent.ID
+//
+//	// Check if the file is unique
+//	err = isFileUnique(file)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// Create the file in the database
+//	//return getDB().Create(file).Error
+//	return nil
+//}
+//
+//func EditFile(file *File, userid int64) error {
+//	// We cannot change ownership of a file
+//	file.Owner = userid
+//
+//	var err error
+//	file.Path, err = calculatePath(file.ParentID, file.Name, file.Owner)
+//	if err != nil {
+//		return err
+//	}
+//
+//	//return getDB().Where("owner = ?", userid).Save(file).Error
+//	return nil
+//}
+//
+//func DeleteFile(id uint64, userid int64) error {
+//	//return getDB().Where("owner = ?", userid).Delete(&File{ID: id}).Error
+//	return nil
+//}
+//
+//func GetFileByID(id uint64, userid int64) (*File, error) {
+//	//file := File{}
+//	//return &file,
+//	//	getDB().Where("owner = ?", userid).
+//	//		Take(&file, id).
+//	//		Error
+//	return nil, nil
+//}
+//
+//// Returns nil if it's unique and ErrAlreadyExists if not
+//func isFileUnique(file *File) error {
+//	//var c int64
+//	//err := getDB().
+//	//	Model(&File{}).
+//	//	Where("owner = ? AND parent_id = ? AND name = ?",
+//	//		file.Owner,
+//	//		file.ParentID,
+//	//		file.Name).
+//	//	Count(&c).
+//	//	Error
+//
+//	//if err != nil && err != gorm.ErrRecordNotFound {
+//	//	if err == gorm.ErrRecordNotFound {
+//	//		return nil
+//	//	}
+//	//	return err
+//	//}
+//	//
+//	//if c >= 1 {
+//	//	return ErrAlreadyExists
+//	//}
+//	return nil
+//}

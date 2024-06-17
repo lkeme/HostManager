@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"HostManager/backend/internal/db"
+	"HostManager/backend/db"
 	"HostManager/backend/util"
 	"fmt"
 	"os"

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"HostManager/backend/internal/config"
+	"HostManager/backend/config"
 	"encoding/base64"
 )
 

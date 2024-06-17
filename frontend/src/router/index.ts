@@ -1,46 +1,8 @@
-import type {Router, RouteRecordRaw} from 'vue-router'
+import type {Router} from 'vue-router'
 import {createRouter, createWebHashHistory} from 'vue-router'
 import {IsLogin} from "@/wailsjs/go/controller/Auth";
 import {IsLoginResponse} from "@/src/types/response/auth";
-
-const routes: RouteRecordRaw[] = [
-    {
-        path: '/',
-        name: 'Dashboard',
-        component: () => import('@/src/views/dashboard/index.vue'), // 注意这里要带上 文件后缀.vue
-        meta: {
-            title: 'Index/Dashboard',
-            requiresAuth: true
-        }
-    },
-    // {
-    //     path: '/index',
-    //     name: 'Dashboard',
-    //     component: () => import('@/src/views/dashboard/index.vue'), // 注意这里要带上 文件后缀.vue
-    //     meta: {
-    //         title: 'Index/Dashboard',
-    //         requiresAuth: true
-    //     }
-    // },
-    {
-        path: '/login',
-        name: 'Login',
-        component: () => import('@/src/views/login/index.vue'), // 注意这里要带上 文件后缀.vue
-        meta: {
-            title: 'Login',
-            requiresAuth: false
-        }
-    },
-    {
-        name: 'nofound',
-        path: "/:nofound(.*)*",
-        redirect: '/index',
-        meta: {
-            title: '404',
-            requiresAuth: false
-        }
-    }
-]
+import routes from './routes'
 
 // 创建路由
 const router: Router = createRouter({
@@ -76,7 +38,6 @@ router.beforeEach(async (to, _) => {
     // }
     // next();
 })
-
 
 // 设置页面标题
 router.afterEach((to) => {

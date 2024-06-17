@@ -278,8 +278,8 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col h-full w-full">
     <!--    top-0 z-50-->
-    <div class="flex flex-grow items-center">
-      <div class="flex flex-grow" style="--wails-draggable:drag;user-select: none" @dblclick="handleMaximise()">
+    <div class="flex flex-1 items-center">
+      <div class="flex flex-1" style="--wails-draggable:drag;user-select: none" @dblclick="handleMaximise()">
         <n-dropdown
             :options="moreOptions"
             :show-arrow="true"

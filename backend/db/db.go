@@ -104,7 +104,7 @@ func ChangePassword(dbName, oldKey, newKey string) (err error) {
 func Migrate() (err error) {
 	err = globalDB.AutoMigrate(
 		&model.Folder{},
-		&model.Server{},
+		&model.File{},
 	)
 	if err != nil {
 		log.Println("Database migration failed: ", err.Error())
