@@ -10,30 +10,30 @@
   },
   "dependencies": {
     "@ant-design/colors": "^7.0.2",
-    "@vueuse/core": "^10.10.0",
+    "@vueuse/core": "^10.11.0",
     "colord": "^2.9.3",
     "js-base64": "^3.7.7",
     "lodash-es": "^4.17.21",
     "naive-ui-form": "^3.0.16",
     "pinia": "^2.1.7",
     "seemly": "^0.3.8",
-    "uuid": "^9.0.1",
-    "vue": "^3.4.27",
-    "vue-router": "^4.3.2"
+    "uuid": "^10.0.0",
+    "vue": "^3.4.29",
+    "vue-router": "^4.4.0"
   },
   "devDependencies": {
     "@babel/types": "^7.24.7",
-    "@types/node": "^20.14.2",
+    "@types/node": "^20.14.8",
     "@vicons/ionicons5": "^0.12.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "autoprefixer": "^10.4.19",
     "naive-ui": "^2.38.2",
     "postcss": "^8.4.38",
-    "sass": "^1.77.4",
+    "sass": "^1.77.6",
     "tailwindcss": "^3.4.4",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.2",
     "unplugin-vue-components": "^0.27.0",
-    "vite": "^5.2.13",
-    "vue-tsc": "^2.0.19"
+    "vite": "^5.3.1",
+    "vue-tsc": "^2.0.21"
   }
 }

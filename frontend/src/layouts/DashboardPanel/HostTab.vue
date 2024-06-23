@@ -1,24 +1,26 @@
 <script setup lang="ts">
 import {computed, h, onMounted, ref, watch, withModifiers} from 'vue';
 import {NButton, NDivider, NIcon, useOsTheme} from 'naive-ui';
+import {findTreeOptionLevel, NewTreeDropInfo, NewTreeOption} from '@/src/layouts/DashboardPanel/createData';
+import {type FormSchema, ModalForm, type ModalFormInstance, type Recordable} from 'naive-ui-form'
+import {CreateFolder, GetAllFolders} from "@/wailsjs/go/controller/FileSystem";
+import {CreateFolderResponse, FolderHierarchy, GetAllFoldersResponse} from "@/src/types/response/filesystem";
+import IconButton from "@/src/components/common/IconButton.vue";
+import AddGroup from "@/src/components/Icons/AddGroup.vue";
+import AddLink from "@/src/components/Icons/AddLink.vue";
+import SearchOutline from '@/src/components/Icons/SearchOutline.vue';
+import Refresh from '@/src/components/Icons/Refresh.vue';
+import Loader from '@/src/components/Icons/Loader.vue';
 import {
-  AddOutline,
   Folder,
   FolderOpen,
   FolderOpenOutline,
   FolderOutline,
-  PencilOutline,
-  RefreshCircleOutline,
+  Link,
+  SettingsOutline,
   TrashOutline,
 } from '@vicons/ionicons5';
-import SearchOutline from '@/src/components/Icons/SearchOutline.vue';
-import Loader from '@/src/components/Icons/Loader.vue';
-import {findTreeOptionLevel, NewTreeOption} from '@/src/layouts/DashboardPanel/createData';
-import {type FormSchema, ModalForm, type ModalFormInstance, type Recordable} from 'naive-ui-form'
-import {CreateFolder, GetAllFolders} from "@/wailsjs/go/controller/FileSystem";
-import {CreateFolderResponse, FolderHierarchy, GetAllFoldersResponse} from "@/src/types/response/filesystem";
 
-// const treeOptions: Ref<Array<TreeOption>> = ref<Array<TreeOption>>([]);
 const treeOptions = ref([])
 
 const showIrrelevantNodes = ref(false);
@@ -73,9 +75,10 @@ watch(expandedKeys, async (newKeys) => {
   saveToLocalStorage();
 });
 
-const handleDragEnd = (event) => {
+const handleDragEnd = (node: NewTreeOption, event: DragEvent) => {
   $message.info('节点拖拽');
   console.log('Drag End:', event);
+  console.log('Node:', node);
 };
 
 
@@ -111,49 +114,45 @@ const nodeProps = ({option}: { option: NewTreeOption }) => {
 }
 
 // 渲染节点后缀
+const createButton = (icon, color, text, onClick) => {
+  return h(NButton, {
+    style: 'margin-left: 4px',
+    text: true,
+    size: 'medium',
+    onClick: withModifiers(onClick, ['stop', 'prevent'])
+  }, {default: () => h(NIcon, {color}, {default: () => h(icon)})});
+};
+
+const getNodeMenu = (isEdit = false, isDelete = false) => {
+  const style = 'display: flex; align-items: center; justify-content: center;';
+  const buttons = [];
+
+  if (isEdit) {
+    buttons.push(createButton(SettingsOutline, '#2ed6e9', '编辑', () => {
+      console.log('编辑', nodeHoverDefaultKey.value);
+    }));
+  }
+
+  if (isDelete) {
+    buttons.push(createButton(TrashOutline, '#fb0e0e', '删除', () => {
+      console.log('删除', nodeHoverDefaultKey.value);
+    }));
+  }
+
+  return h('div', {style}, buttons);
+};
+
 const renderNodeSuffix = ({option}: { option: NewTreeOption }) => {
   // 如果不是当前hover的节点，不渲染
   if (option.key !== nodeHoverDefaultKey.value) return;
   // 如果是文件夹，且有子节点，只渲染编辑图标按钮
-  if (option.children) {
-    return h('div', {
-      style: 'display: flex; align-items: center; justify-content: center;',
-    }, [
-      h(NButton, {
-        style: 'margin-left: 4px',
-        text: true,
-        size: 'medium',
-        onClick: withModifiers(() => {
-          console.log('编辑', option.key);
-        }, ['stop', 'prevent'])
-
-      }, {default: () => h(NIcon, {color: '#2ed6e9'}, {default: () => h(PencilOutline)}),})
-    ])
+  if (option.children && option.children.length > 0) {
+    return getNodeMenu(true, false);
   } else {
-    return h('div', {
-      style: 'display: flex; align-items: center; justify-content: center;',
-    }, [
-      h(NButton, {
-        style: 'margin-left: 4px',
-        text: true,
-        size: 'medium',
-        onClick: withModifiers(() => {
-          console.log('编辑', option.key);
-        }, ['stop', 'prevent'])
-
-      }, {default: () => h(NIcon, {color: '#2ed6e9'}, {default: () => h(PencilOutline)}),}),
-      h(NButton, {
-        text: true,
-        style: 'margin-left: 4px',
-        size: 'medium',
-        onClick: withModifiers(() => {
-          console.log('删除', option.key);
-        }, ['stop', 'prevent'])
-      }, {default: () => h(NIcon, {color: '#fb0e0e'}, {default: () => h(TrashOutline)}),}),
-    ])
+    return getNodeMenu(true, true);
   }
-
 }
+
 
 // 渲染展开开关的图标
 const renderSwitcherIconWithExpand = ({option, expanded}: { option: NewTreeOption, expanded: boolean }) => {
@@ -210,6 +209,10 @@ const handleRefreshData = async () => {
 const showAddFolderModal = ref(false);
 const addFolderModalRef = ref<ModalFormInstance | null>(null);
 const addFolderLoading = ref(false);
+const addFolderBtnStatus = computed(() => {
+  return nodeClickDefaultOption.value?.level > 1;
+})
+
 const addFolderSchemas: FormSchema[] = [
   {
     // label: '分类名称',
@@ -246,7 +249,7 @@ const handleAddFolder = async (values: Recordable) => {
 
 
 // -----------addFile start----------------
-const handleAddFileStatus = computed(() => {
+const addFileBtnStatus = computed(() => {
   return treeOptions.value.length === 0;
 })
 
@@ -265,32 +268,64 @@ const handleAddFile = () => {
 const deleteButtonLoading = ref(false);
 const deleteCheckAbleEnable = ref(false);
 const handleDeleteButton = () => {
+  // if (!deleteCheckAbleEnable.value) {
+  //   $message.warning('请选择需要删除的节点');
+  // }
+
   deleteCheckAbleEnable.value = !deleteCheckAbleEnable.value;
   deleteButtonLoading.value = !deleteButtonLoading.value;
 };
+const defaultCheckedKeys = ref([]);
+const updateCheckedKeys = (keys: Array<any>) => {
+  defaultCheckedKeys.value = keys;
+  console.log('Checked Keys:', keys);
+};
+
 // -----------batchDelete end----------------
 
 onMounted(async () => {
   await handleRefreshData();
 });
+
+
+const findSiblingsAndIndex = (node: NewTreeOption, nodes?: NewTreeOption[]): [NewTreeOption[], number] | [null, null] => {
+  if (!nodes) return [null, null]
+  for (let i = 0; i < nodes.length; ++i) {
+    const siblingNode = nodes[i]
+    if (siblingNode.key === node.key) return [nodes, i]
+    const [siblings, index] = findSiblingsAndIndex(node, siblingNode.children)
+    if (siblings && index !== null) return [siblings, index]
+  }
+  return [null, null]
+}
+
+const handleDrop = ({node, dragNode, dropPosition}: NewTreeDropInfo) => {
+  const [dragNodeSiblings, dragNodeIndex] = findSiblingsAndIndex(dragNode, treeOptions.value)
+  if (dragNodeSiblings === null || dragNodeIndex === null) return
+  dragNodeSiblings.splice(dragNodeIndex, 1)
+  if (dropPosition === 'inside') {
+    if (node.children) {
+      node.children.unshift(dragNode)
+    } else {
+      node.children = [dragNode]
+    }
+  } else if (dropPosition === 'before') {
+    const [nodeSiblings, nodeIndex] = findSiblingsAndIndex(node, treeOptions.value)
+    if (nodeSiblings === null || nodeIndex === null) return
+    nodeSiblings.splice(nodeIndex, 0, dragNode)
+  } else if (dropPosition === 'after') {
+    const [nodeSiblings, nodeIndex] = findSiblingsAndIndex(node, treeOptions.value)
+    if (nodeSiblings === null || nodeIndex === null) return
+    nodeSiblings.splice(nodeIndex + 1, 0, dragNode)
+  }
+  // Vue 3 reactivity trigger
+  treeOptions.value = [...treeOptions.value]
+}
+
 </script>
 
-
 <template>
-  <ModalForm
-      title="新增分类"
-      v-model:show="showAddFolderModal"
-      ref="addFolderModalRef"
-      :schemas="addFolderSchemas"
-      :loading="addFolderLoading"
-      @submit="handleAddFolder"
-      :closable="false"
-      :show-icon="false"
-      :negative-button-props="{ focusable: false, size: 'medium' }"
-      :positive-button-props="{ focusable: false, size: 'medium',type:'error'}"
-  />
-
-  <div class="flex flex-col flex-1 p-2 h-full gap-3 g-tree">
+  <div class="flex flex-col flex-1 px-2 py-1 gap-y-1 h-full">
     <!--搜索框-->
     <n-input v-model:value="pattern" placeholder="输入搜索的内容">
       <template #prefix>
@@ -307,87 +342,37 @@ onMounted(async () => {
         </n-tooltip>
       </template>
     </n-input>
+
     <!--操作按钮-->
-    <n-space align="stretch" justify="space-between" :wrap="false">
-      <n-tooltip placement="top-start" trigger="hover">
-        <template #trigger>
-          <n-button type="success" size="tiny" @click="handleRefreshData" :loading="refreshDataLoading">
-            <template #icon>
-              <RefreshCircleOutline/>
-            </template>
-            刷新
-          </n-button>
-        </template>
-        <span>刷新数据</span>
-      </n-tooltip>
-      <n-tooltip placement="top-start" trigger="hover">
-        <template #trigger>
-          <n-button type="info" size="tiny" @click="showAddFolderModal = true;" :disabled="nodeClickDefaultOption?.level > 1" :loading="addFolderLoading">
-            <template #icon>
-              <AddOutline/>
-            </template>
-            分类
-          </n-button>
-        </template>
-        <span>最大支持二级分类</span>
-      </n-tooltip>
-      <n-button type="primary" size="tiny" @click="handleAddFile" :disabled="handleAddFileStatus">
-        <template #icon>
-          <AddOutline/>
-        </template>
-        会话
-      </n-button>
-      <n-button type="error" size="tiny" @click="handleDeleteButton">
-        <template #icon>
-          <Loader v-if="deleteButtonLoading"/>
-          <TrashOutline v-else/>
-        </template>
-        批量
-      </n-button>
-    </n-space>
-    <!--分割线-->
-    <n-divider/>
-    <!--详情-->
-    <n-tooltip placement="bottom-start" trigger="hover">
-      <template #trigger>
-        <n-tag disabled>
-          已选择分类: {{ nodeClickDefaultOption?.label ?? 'ROOT' }}
-        </n-tag>
-      </template>
-      <n-space vertical>
-        <n-tag type="success">
-          Label: {{ nodeClickDefaultOption?.label ?? 'ROOT' }}
-        </n-tag>
-        <n-tag type="success">
-          Key: {{ nodeClickDefaultOption?.key ?? 'ROOT' }}
-        </n-tag>
-        <n-tag type="success">
-          Level: {{
-            nodeClickDefaultOption?.key ? findTreeOptionLevel(treeOptions, nodeClickDefaultOption) : '0'
-          }}
-        </n-tag>
-        <n-tag type="success">
-          IsFolder: {{ typeof nodeClickDefaultOption?.children !== 'undefined' ? '☑' : '☒' }}
-        </n-tag>
-      </n-space>
-    </n-tooltip>
+<!--    <n-space align="stretch" justify="space-between" :wrap="false">-->
+
+<!--      <n-button type="error" size="tiny" @click="handleDeleteButton">-->
+<!--        <template #icon>-->
+<!--          <Loader v-if="deleteButtonLoading"/>-->
+<!--          <TrashOutline v-else/>-->
+<!--        </template>-->
+<!--        批量-->
+<!--      </n-button>-->
+<!--    </n-space>-->
+
+
     <!--分割线-->
     <n-divider/>
     <!--列树-->
     <n-scrollbar class="max-h-full overflow-y-auto">
+      <!--      @dragend="handleDragEnd"-->
       <n-tree
           :indent="20"
           class="tree"
           cascade
           draggable
           :checkable="deleteCheckAbleEnable"
-          :on-dragend="handleDragEnd"
+          @drop="handleDrop"
           :show-irrelevant-nodes="showIrrelevantNodes"
           :pattern="pattern"
           block-line
           :data="treeOptions"
           :default-expanded-keys="expandedKeys"
-          :on-update:expanded-keys="handleExpandedKeysUpdate"
           :render-switcher-icon="renderSwitcherIconWithExpand"
           checkbox-placement="right"
           :selectable="true"
@@ -396,12 +381,86 @@ onMounted(async () => {
           :style="styleObject"
           :render-suffix="renderNodeSuffix"
           :node-props="nodeProps"
-
+          @update:expanded-keys="handleExpandedKeysUpdate"
+          @update:checked-keys="updateCheckedKeys"
       />
     </n-scrollbar>
-
+    <n-divider/>
+    <!-- bottom function bar -->
+    <div class="flex flex-row items-center space-x-2">
+      <!--添加会话-->
+      <icon-button
+          :icon="AddLink"
+          :stroke-width="3.5"
+          size="20"
+          t-tooltip="添加会话"
+          @click="handleAddFile"
+          :disabled="addFileBtnStatus"
+      />
+      <!--添加分类-->
+      <icon-button
+          :icon="AddGroup"
+          :stroke-width="3.5"
+          size="20"
+          :t-tooltip="addFolderBtnStatus ? '最大支持二级分类' : '添加分类'"
+          @click="showAddFolderModal = true;"
+          :disabled="addFolderBtnStatus"
+          :loading="addFolderLoading"
+      />
+      <!--分割线-->
+      <n-divider vertical/>
+      <!--详情-->
+      <n-tooltip placement="top-start" trigger="hover">
+        <template #trigger>
+          <n-input :autofocus="false" :placeholder="nodeClickDefaultOption?.label ?? 'ROOT'" size="small" disabled
+                   clearable>
+            <template #prefix>
+              <n-icon :component="Link" size="20"/>
+            </template>
+          </n-input>
+        </template>
+        <n-space vertical>
+          <n-tag type="success">
+            Label: {{ nodeClickDefaultOption?.label ?? 'ROOT' }}
+          </n-tag>
+          <n-tag type="success">
+            Key: {{ nodeClickDefaultOption?.key ?? 'ROOT' }}
+          </n-tag>
+          <n-tag type="success">
+            Level: {{
+              nodeClickDefaultOption?.key ? findTreeOptionLevel(treeOptions, nodeClickDefaultOption) : '0'
+            }}
+          </n-tag>
+          <n-tag type="success">
+            IsFolder: {{ typeof nodeClickDefaultOption?.children !== 'undefined' ? '☑' : '☒' }}
+          </n-tag>
+        </n-space>
+      </n-tooltip>
+      <!--分割线-->
+      <n-divider vertical/>
+      <!--刷新-->
+      <icon-button
+          :icon="Refresh"
+          :stroke-width="3.5"
+          size="20"
+          t-tooltip="刷新数据"
+          @click="handleRefreshData"
+          :loading="refreshDataLoading"
+      />
+    </div>
   </div>
-
+  <ModalForm
+      title="新增分类"
+      v-model:show="showAddFolderModal"
+      ref="addFolderModalRef"
+      :schemas="addFolderSchemas"
+      :loading="addFolderLoading"
+      @submit="handleAddFolder"
+      :closable="false"
+      :show-icon="false"
+      :negative-button-props="{ focusable: false, size: 'medium' }"
+      :positive-button-props="{ focusable: false, size: 'medium',type:'error'}"
+  />
 </template>
 
 
@@ -417,6 +476,8 @@ onMounted(async () => {
 .tree.is-dark svg path {
   stroke: #fff;
 }
+
+
 </style>
 
 

@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import {WindowSetAlwaysOnTop} from "@/wailsjs/runtime";
+import {BrowserOpenURL, WindowSetAlwaysOnTop} from "@/wailsjs/runtime";
 import {type Component, computed, h, onMounted, ref} from "vue";
 import Setting from "@/src/components/Icons/Setting.vue";
 import Pin32Filled from "@/src/components/Icons/Pin32Filled.vue";
 import {NIcon} from "naive-ui";
+import {type FormSchema, ModalForm, type ModalFormInstance, type Recordable} from "naive-ui-form";
+import {useThemeStore} from '@/src/stores'
+import {storeToRefs} from 'pinia'
+import {GetAppSettingAttr} from "@/wailsjs/go/controller/Config";
+import {GetAppSettingAttrResponse} from "@/src/types/response/config";
+import {IsEncrypted, IsLogin} from "@/wailsjs/go/controller/Auth";
+import {IsEncryptedResponse, IsLoginResponse} from "@/src/types/response/auth";
 
+const themeStore = useThemeStore()
+const { themeColors} = storeToRefs(themeStore)
 
 const props = defineProps({
   showPin2Top: {
@@ -71,6 +80,7 @@ const onSelectPreferenceMenu = (key: string) => {
     case 'help':
       break
     case 'about':
+      showAboutModal.value = true
       break
   }
 }
@@ -100,6 +110,41 @@ onMounted(() => {
 });
 
 
+// 关于弹窗
+const showAboutModal = ref(false);
+const showAboutModalRef = ref<ModalFormInstance | null>(null);
+const showAboutModalSchemas: FormSchema[] = [
+  {
+    field: 'template',
+    type: 'slot',
+    slot: 'template',
+    componentProps: {
+      showFeedback: false
+    }
+  }
+];
+const showAboutModalLoading = ref(false);
+const handleShowAboutModal = async (values: Recordable) => {
+  console.log(values)
+};
+
+const onOpenSource = () => {
+  BrowserOpenURL('https://github.com/lkeme/HostManager')
+}
+
+const onOpenWebsite = () => {
+  BrowserOpenURL('https://github.com/')
+}
+
+const appIcon = ref<string>('')
+
+onMounted(async () => {
+  await GetAppSettingAttr('appIcon').then((response: GetAppSettingAttrResponse) => {
+    appIcon.value = response.data.value;
+  });
+});
+
+
 </script>
 
 <template>
@@ -109,14 +154,14 @@ onMounted(() => {
       <p>拥有<span class="font-bold">23</span>个主机</p>
       <!--隐藏/显示-->
       <div class="group">
-      <div class="group-hover:hidden">
-        Happy Ending
-      </div>
-      <div class="hidden group-hover:flex">
-        <n-gradient-text gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)">
-          {{ nowTime }}
-        </n-gradient-text>
-      </div>
+        <div class="group-hover:hidden">
+          Happy Ending
+        </div>
+        <div class="hidden group-hover:flex">
+          <n-gradient-text gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)">
+            {{ nowTime }}
+          </n-gradient-text>
+        </div>
       </div>
       <div class="flex gap-x-2.5 ">
         <!--      absolute right-2 bottom-2-->
@@ -155,6 +200,35 @@ onMounted(() => {
       </div>
     </div>
   </div>
+<!--  不显示按钮-->
+  <ModalForm
+      title=""
+      v-model:show="showAboutModal"
+      ref="showAboutModalRef"
+      :show-icon="false"
+      :loading="showAboutModalLoading"
+      @submit="handleShowAboutModal"
+      :schemas="showAboutModalSchemas"
+      negativeText=""
+      positiveText=""
+  >
+    <template #template>
+      <n-space :size="10" :wrap="false" :wrap-item="false" align="center" vertical>
+        <n-avatar :size="120" :src="appIcon ?? 'https://q1.qlogo.cn/g?b=qq&nk=10007&s=100'" color="#0000"></n-avatar>
+        <div class="font-bold text-xl m-1">HostManager</div>
+        <n-text>(v1.0.24)</n-text>
+        <n-space :size="5" :wrap="false" :wrap-item="false" align="center">
+          <n-text class="cursor-pointer hover:underline decoration-1" @click="onOpenSource">源码地址</n-text>
+          <n-divider vertical />
+          <n-text class="cursor-pointer hover:underline decoration-1" @click="onOpenWebsite">官方网站</n-text>
+        </n-space>
+        <div class="text-xs text-gray-500">
+          Copyright © 2024 HostManager.glc All rights reserved
+        </div>
+      </n-space>
+    </template>
+  </ModalForm>
+
 </template>
 
 <style lang="scss" scoped>

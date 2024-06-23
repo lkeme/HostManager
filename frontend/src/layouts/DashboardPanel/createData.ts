@@ -1,13 +1,22 @@
 // import {h} from 'vue'
 import {repeat} from 'seemly'
 // import {NButton, TreeOption} from 'naive-ui'
-import {TreeOption} from 'naive-ui'
+import {TreeOption,TreeDropInfo} from 'naive-ui'
 import {v4 as uuidv4} from 'uuid'
 
 export interface NewTreeOption extends TreeOption {
     id: number,
     level: number,
     parentID: number,
+    children?: NewTreeOption[]
+}
+
+
+export interface NewTreeDropInfo extends TreeDropInfo {
+    event: DragEvent;
+    node: NewTreeOption;
+    dragNode: NewTreeOption;
+    dropPosition: 'before' | 'inside' | 'after';
 }
 
 const createKey = (): string => {
