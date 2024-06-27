@@ -9,11 +9,9 @@ import {useThemeStore} from '@/src/stores'
 import {storeToRefs} from 'pinia'
 import {GetAppSettingAttr} from "@/wailsjs/go/controller/Config";
 import {GetAppSettingAttrResponse} from "@/src/types/response/config";
-import {IsEncrypted, IsLogin} from "@/wailsjs/go/controller/Auth";
-import {IsEncryptedResponse, IsLoginResponse} from "@/src/types/response/auth";
 
 const themeStore = useThemeStore()
-const { themeColors} = storeToRefs(themeStore)
+const {themeColors} = storeToRefs(themeStore)
 
 const props = defineProps({
   showPin2Top: {
@@ -200,7 +198,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-<!--  不显示按钮-->
+  <!--  不显示按钮-->
   <ModalForm
       title=""
       v-model:show="showAboutModal"
@@ -219,7 +217,7 @@ onMounted(async () => {
         <n-text>(v1.0.24)</n-text>
         <n-space :size="5" :wrap="false" :wrap-item="false" align="center">
           <n-text class="cursor-pointer hover:underline decoration-1" @click="onOpenSource">源码地址</n-text>
-          <n-divider vertical />
+          <n-divider vertical/>
           <n-text class="cursor-pointer hover:underline decoration-1" @click="onOpenWebsite">官方网站</n-text>
         </n-space>
         <div class="text-xs text-gray-500">

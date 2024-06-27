@@ -1,5 +1,5 @@
 import {useThemeStore} from '@/src/stores'
-import {type ConfigProviderProps,MessageProviderProps, createDiscreteApi} from 'naive-ui'
+import {type ConfigProviderProps, createDiscreteApi, MessageProviderProps} from 'naive-ui'
 import {storeToRefs} from 'pinia'
 import {computed} from 'vue'
 

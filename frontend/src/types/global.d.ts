@@ -28,6 +28,7 @@ declare global {
         $notification: NotificationApi
         $loadingBar: LoadingBarApi
     }
+
     // interface Window {
     //     $message: MessageApi
     //     $dialog: DialogApi

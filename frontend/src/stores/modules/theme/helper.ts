@@ -1,7 +1,8 @@
-import { generate } from '@ant-design/colors'
-import { colord } from 'colord'
-import { upperFirst, kebabCase } from 'lodash-es'
-import { type GlobalThemeOverrides, commonDark, commonLight } from 'naive-ui'
+import {generate} from '@ant-design/colors'
+import {colord} from 'colord'
+import {kebabCase, upperFirst} from 'lodash-es'
+import {commonDark, commonLight, type GlobalThemeOverrides} from 'naive-ui'
+
 type ColorKey = `${NTheme.ColorType}Color${NTheme.ColorSceneCase}`
 type ButtonColorKey =
     `textColor${NTheme.ButtonColorSceneCase}${NTheme.ColorTypeCase}`
@@ -93,7 +94,7 @@ export function getThemeColors(
     const themeColor: ThemeColor = {}
     const keys = Object.keys(config) as NTheme.ColorType[]
     const colorActions: ColorAction[] = [
-        { scene: '', handler: (color) => getGenerateColors(color, darkMode)[5] },
+        {scene: '', handler: (color) => getGenerateColors(color, darkMode)[5]},
         {
             scene: 'Hover',
             handler: (color) => getGenerateColors(color, darkMode)[4]
@@ -186,24 +187,22 @@ export function addCssVarsToHtml(
     const themeColorsEntries = Object.entries(themeColors) as [ColorKey, string][]
 
     for (const [key, value] of themeColorsEntries) {
-        const { r, g, b } = getRGBColor(value)
+        const {r, g, b} = getRGBColor(value)
         configCssObj[`--n-${kebabCase(key)}`] = `${r},${g},${b}`
     }
 
     for (const [key, value] of configEntries) {
         const generateColors = getGenerateColors(value, darkMode)
         generateColors.map((color, index) => {
-            const { r, g, b } = getRGBColor(color)
+            const {r, g, b} = getRGBColor(color)
             configCssObj[`--n-${key}-color-${index + 1}`] = `${r},${g},${b}`
         })
     }
 
-    const newCssText = Object.entries({
+    $root.style.cssText = Object.entries({
         ...cssObj,
         ...configCssObj
     })
         .map(([key, value]) => `${key}: ${value};`)
         .join(' ')
-
-    $root.style.cssText = newCssText
 }

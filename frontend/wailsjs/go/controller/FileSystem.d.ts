@@ -3,10 +3,14 @@
 import {controller} from '../models';
 import {context} from '../models';
 
-export function CreateFolder(arg1:string,arg2:number,arg3:string):Promise<controller.Res>;
+export function CreateFolder(arg1:string,arg2:number):Promise<controller.Res>;
 
-export function GetAllFolders():Promise<controller.Res>;
+export function DeleteFolder(arg1:number):Promise<controller.Res>;
 
 export function GetCtx():Promise<context.Context>;
+
+export function GetStorage():Promise<controller.Res>;
+
+export function RenameFolder(arg1:string,arg2:number):Promise<controller.Res>;
 
 export function SetCtx(arg1:context.Context):Promise<void>;

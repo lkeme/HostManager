@@ -8,7 +8,7 @@ const {theme, themeOverrides} = storeToRefs(themeStore)
 </script>
 
 <template>
-<!--  class="w-full h-full"-->
+  <!--  class="w-full h-full"-->
   <n-config-provider
       :locale="zhCN"
       :date-locale="dateZhCN"

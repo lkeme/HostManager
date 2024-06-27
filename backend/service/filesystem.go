@@ -3,8 +3,8 @@ package service
 import (
 	"HostManager/backend/global"
 	"HostManager/backend/model"
+	"HostManager/backend/util"
 	"errors"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
 	"sync"
@@ -25,6 +25,72 @@ func GetFileSystemSrv() *FileSystemSrv {
 // GetParent 获取父文件夹
 func (s *FileSystemSrv) GetParent(parentID uint64) (*model.Folder, error) {
 	return s.GetFolderByID(parentID)
+}
+
+func preloadSubfolders(db *gorm.DB) *gorm.DB {
+	//return d.Preload(clause.Associations, preload)
+	return db.Preload("Subfolders", preloadSubfolders).Preload("Files")
+}
+
+// GetStorage 获取文件系统
+func (s *FileSystemSrv) GetStorage() (rootFolders []model.Folder, err error) {
+	err = global.DB().
+		Where("parent_id = ?", 0).
+		Preload("Subfolders", preloadSubfolders).
+		Preload("Files").
+		Find(&rootFolders).Error
+	return
+}
+
+// RenameFolder 重命名文件夹
+func (s *FileSystemSrv) RenameFolder(name string, id uint64) error {
+	folder, err := s.GetFolderByID(id)
+	if err != nil {
+		return err
+	}
+	folder.Name = name
+	return global.DB().Save(&folder).Error
+}
+
+// DeleteFolder 删除文件夹
+func (s *FileSystemSrv) DeleteFolder(id uint64) error {
+	folder, err := s.GetFolderByID(id)
+	if err != nil {
+		return err
+	}
+	return global.DB().Delete(&folder).Error
+}
+
+// CreateFolder 创建文件夹
+func (s *FileSystemSrv) CreateFolder(name string, parentID uint64) error {
+	// 获取父文件夹
+	parent, err := s.GetParent(parentID)
+	if err != nil {
+		return err
+	}
+	// 获取父文件夹中的文件夹
+	folders, err := s.GetFoldersInFolder(parent)
+	if err != nil {
+		return err
+	}
+	// 检查是否已经有同名文件夹
+	for _, folder := range folders {
+		if folder.Name == name {
+			return errors.New("同级文件夹下已存在同名文件夹")
+		}
+	}
+	// 构建路径并注册到数据库
+	f := &model.Folder{
+		Type:     "folder",
+		Name:     name,
+		Key:      util.GenerateKey(),
+		Level:    parent.Level + 1,
+		ParentID: parent.ID,
+	}
+	//
+	log.Println(44444)
+
+	return global.DB().Create(f).Error
 }
 
 // GetFolderByID 通过 ID 获取文件夹
@@ -52,36 +118,6 @@ func (s *FileSystemSrv) GetFoldersInFolder(parent *model.Folder) ([]*model.Folde
 			Where("parent_id = ?", parent.ID).
 			Find(&folders).
 			Error
-}
-
-// CreateFolder 创建文件夹
-func (s *FileSystemSrv) CreateFolder(name string, parentID uint64) error {
-	// 获取父文件夹
-	parent, err := s.GetParent(parentID)
-	log.Println(parent)
-	if err != nil {
-		return err
-	}
-	// 获取父文件夹中的文件夹
-	folders, err := s.GetFoldersInFolder(parent)
-	if err != nil {
-		return err
-	}
-	// 检查是否已经有同名文件夹
-	for _, folder := range folders {
-		if folder.Name == name {
-			return errors.New("同级文件夹下已存在同名文件夹")
-		}
-	}
-	// 构建路径并注册到数据库
-	f := &model.Folder{
-		Name:     name,
-		ParentID: parent.ID,
-		Level:    parent.Level + 1,
-		Key:      uuid.New().String()[9:23],
-	}
-	//
-	return global.DB().Create(f).Error
 }
 
 //---------------------------------------------------
@@ -119,85 +155,3 @@ func (s *FileSystemSrv) CreateFolder(name string, parentID uint64) error {
 //
 //	return rootFolders, nil
 //}
-
-func GetFoldersInFolder(parent *model.Folder) ([]*model.Folder, error) {
-	var folders []*model.Folder
-	return folders,
-		global.DB().
-			Where("parent_id = ?", parent.ID).
-			Find(&folders).
-			Error
-}
-
-func GetFilesInFolder(parent *model.Folder) ([]*model.File, error) {
-	var files []*model.File
-	return files,
-		global.DB().
-			Where("parent_id = ?", parent.ID).
-			Find(&files).
-			Error
-
-}
-
-func GetChildrenInFolder(parent *model.Folder) (*model.FolderContent, error) {
-	files, err := GetFilesInFolder(parent)
-	if err != nil {
-		return nil, err
-	}
-	folders, err := GetFoldersInFolder(parent)
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.FolderContent{
-		Files:  files,
-		Folder: folders,
-	}, nil
-}
-
-func GetChildrenRecursive(parent *model.Folder) (*model.FolderTree, error) {
-	result := &model.FolderTree{Root: parent}
-	content, err := GetChildrenInFolder(parent)
-	if err != nil {
-		return nil, err
-	}
-
-	result.Files = content.Files
-	result.Folders = []*model.FolderTree{}
-
-	for _, subDir := range content.Folder {
-		t, err := GetChildrenRecursive(subDir)
-		if err != nil {
-			return nil, err
-		}
-		result.Folders = append(result.Folders, t)
-	}
-
-	return result, nil
-}
-
-func (s *FileSystemSrv) GetAllFolders() (folderHierarchy []model.FolderHierarchy) {
-	// Query all folders
-	var rootFolders []model.Folder
-	global.DB().Where("parent_id = ?", 0).Find(&rootFolders)
-
-	// Organize folders into a hierarchy
-	for _, rootFolder := range rootFolders {
-		hierarchy := s.buildFolderHierarchy(global.DB(), rootFolder)
-		folderHierarchy = append(folderHierarchy, hierarchy)
-	}
-	return
-}
-
-// Recursive function to build folder hierarchy
-func (s *FileSystemSrv) buildFolderHierarchy(db *gorm.DB, folder model.Folder) model.FolderHierarchy {
-	var childrenFolders []model.Folder
-	db.Where("parent_id = ?", folder.ID).Find(&childrenFolders)
-
-	hierarchy := model.FolderHierarchy{Folder: folder}
-	for _, childFolder := range childrenFolders {
-		childHierarchy := s.buildFolderHierarchy(db, childFolder)
-		hierarchy.Children = append(hierarchy.Children, childHierarchy)
-	}
-	return hierarchy
-}

@@ -12,7 +12,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <svg :height="props.size" :width="props.size" fill="none"  viewBox="0 0 512 512">
+  <svg :height="props.size" :width="props.size" fill="none" viewBox="0 0 512 512">
     <path d="M256 118a22 22 0 0 1-22-22V48a22 22 0 0 1 44 0v48a22 22 0 0 1-22 22z" fill="currentColor"></path>
     <path d="M256 486a22 22 0 0 1-22-22v-48a22 22 0 0 1 44 0v48a22 22 0 0 1-22 22z" fill="currentColor"></path>
     <path

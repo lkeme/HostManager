@@ -1,8 +1,9 @@
-import { ref, computed, watch } from 'vue'
-import { defineStore } from 'pinia'
-import { getThemeOverrides, getGenerateColors } from './helper'
-import { darkTheme } from 'naive-ui'
-import { useColorMode, useCycleList, type BasicColorSchema } from '@vueuse/core'
+// https://liubing.me/article/vue/naive-ui/naive-ui-custom-theme.html
+import {computed, ref, watch} from 'vue'
+import {defineStore} from 'pinia'
+import {getGenerateColors, getThemeOverrides} from './helper'
+import {darkTheme} from 'naive-ui'
+import {type BasicColorSchema, useColorMode, useCycleList} from '@vueuse/core'
 
 export const useThemeStore = defineStore('theme', () => {
     /** 默认模式，一般设置为auto跟随系统 */
@@ -14,7 +15,7 @@ export const useThemeStore = defineStore('theme', () => {
         initialValue: defaultMode.value,
         emitAuto: true
     })
-    const { state, next } = useCycleList(modeList, {
+    const {state, next} = useCycleList(modeList, {
         initialValue: colorMode
     })
     watch(
@@ -26,12 +27,12 @@ export const useThemeStore = defineStore('theme', () => {
             }
             colorMode.value = state.value as BasicColorSchema
         },
-        { immediate: true }
+        {immediate: true}
     )
 
     /** 暗黑模式 */
     const darkMode = computed(() => {
-        const { system, store } = colorMode
+        const {system, store} = colorMode
         if (state.value === 'auto') {
             return system.value === 'dark'
         }
@@ -40,11 +41,23 @@ export const useThemeStore = defineStore('theme', () => {
 
     /** 主题配置 */
     const themeConfig = ref<NTheme.Config>({
-        primary: '#1677ff',
-        info: '#722ed1',
-        success: '#52c41a',
-        warning: '#faad14',
-        error: '#f5222d'
+        // primary: '#1677ff',
+        // info: '#722ed1',
+        // success: '#52c41a',
+        // warning: '#faad14',
+        // error: '#f5222d'
+        // -------------------
+        // primary: '#18a058',
+        // info: '#2080f0',
+        // success: '#18a058',
+        // warning: '#f0a020',
+        // error: '#d03050'
+        // -------------------
+        primary: '#2979ff',
+        info: '#909399',
+        success: '#19be6b',
+        warning: '#ff9900',
+        error: '#fa3534'
     })
 
     /** 主题 */
